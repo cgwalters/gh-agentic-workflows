@@ -203,7 +203,13 @@ steps:
         jq -r '.[].id' "$BASE_DIR/failed-jobs.json" | while read -r JOB_ID; do
           LOG_FILE="$LOG_DIR/job-${JOB_ID}.log"
           echo "Downloading log for job $JOB_ID..."
-          if gh api "repos/$REPO/actions/jobs/$JOB_ID/logs" > "$LOG_FILE" 2>/dev/null; then
+          # --allow-escape-sequences: raw job logs almost always contain
+          # ANSI color codes, and gh refuses to print a response
+          # containing terminal escape sequences without this flag --
+          # without it every download here fails and this falls through
+          # to the "(log download failed or log expired)" placeholder
+          # below, confirmed live.
+          if gh api --allow-escape-sequences "repos/$REPO/actions/jobs/$JOB_ID/logs" > "$LOG_FILE" 2>/dev/null; then
             # cut -c bounds each line's *length* before head/tail bound the
             # line *count* -- the log content is untrusted PR-controlled
             # text, and a single minified JSON or base64 blob on one line
