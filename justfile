@@ -21,7 +21,7 @@ setup:
 
 # Compile all gh-aw workflow .md sources to .lock.yml (run `just setup` first).
 compile:
-    gh aw compile drafter review fix queue-triage ci-triage --approve
+    gh aw compile drafter review fix queue-triage ci-triage retro --approve
 
 # Setup + compile in one step.
 all: setup compile

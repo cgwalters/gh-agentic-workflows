@@ -58,6 +58,11 @@ const LABELS = [
     description: 'Marks the CI flake tracker issue the merge queue analyzer maintains',
     color: '1D76DB', // blue
   },
+  {
+    name: 'agent/retro',
+    description: 'Marks improvement issues filed by the retrospective analyzer',
+    color: '1D76DB', // blue
+  },
 ];
 
 /**

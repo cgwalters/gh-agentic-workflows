@@ -117,6 +117,24 @@ re-verify everything from scratch.
 
 See `.github/workflows/ci-triage.md` for the full prompt and workflow details.
 
+## Retrospective analyzer
+
+`retro.md` is a host-only scheduled workflow for this repository. It is deliberately
+excluded from `aw.yml`, so `gh aw add` consumers do not install or run it. Every six
+hours it runs from `bootc-dev/gh-agentic-workflows`, discovers active, non-archived,
+non-fork repositories in its organization, and analyzes their recent workflow runs.
+The host repository is excluded from the default target set because the intended scope
+is the other organization repositories; a manual `target_repos` dispatch override may
+include it. Duplicate searches and any new `agent/retro` improvement issues are always
+performed in the host repository, not target repositories.
+
+The workflow's `GITHUB_TOKEN` can only discover and analyze repositories it can read.
+It reports this limitation in its pre-fetch data and does not claim coverage of private
+or internal repositories that are inaccessible to that token. A manual dispatch accepts
+comma-separated, whitespace-trimmed `owner/repo` targets from the host organization and
+validates that each is active and not a fork; `lookback_days` must be an integer from 1
+through 90.
+
 ## Design notes and gotchas
 
 A few things here are non-obvious and were hard-won getting this to actually work:
@@ -284,9 +302,10 @@ now at least readable by the agent, but it was never the intended recovery path.
 
 ## Repository setup checklist
 
-1. Create eight labels: `agent/code`, `agent/fixme`, `agent/lgtm`, `agent/drafter-working`,
+1. Create nine labels: `agent/code`, `agent/fixme`, `agent/lgtm`, `agent/drafter-working`,
    `agent/review-working`, `agent/fix-working`, `agent/workflow-edits-allowed`,
-   `agent/flake-tracker` (see "Letting the agent edit protected files" above). The three
+   `agent/flake-tracker`, `agent/retro` (see "Letting the agent edit protected files"
+   above). The three
    `agent/*-working` labels just need to exist; their color is cosmetic (see "a per-workflow
    `agent/*-working` label is added and removed via frontmatter `jobs:`" above).
    `agent/flake-tracker` is only needed if you're using the merge queue failure analyzer
@@ -312,6 +331,8 @@ now at least readable by the agent, but it was never the intended recovery path.
      --description "Pre-authorizes agent runs to edit protected files without the request_review gate"
    gh label create "agent/flake-tracker" --color 1D76DB \
      --description "Marks the CI flake tracker issue the merge queue analyzer maintains"
+   gh label create "agent/retro" --color 1D76DB \
+     --description "Marks improvement issues filed by the retrospective analyzer"
    ```
 
    See [`scripts/README.md`](scripts/README.md) for more installation options.
@@ -520,6 +541,9 @@ The two standalone triage add-ons live in
 [`ci-triage.md`](.github/workflows/ci-triage.md) — see "Merge queue failure analyzer" and
 "PR CI failure analyzer" above. The matching `*.lock.yml` files are gh-aw's compiled
 output, checked in as generated artifacts.
+[`retro.md`](.github/workflows/retro.md) is a host-only retrospective analyzer, excluded
+from `aw.yml`; it scans accessible organization repositories but centralizes issues in
+this repository — see "Retrospective analyzer" above.
 [`upgrade.yml`](.github/workflows/upgrade.yml) is a separate, plain maintenance workflow:
 weekly, it self-upgrades the `gh-aw` CLI, refreshes `.github/aw/gh-aw-version` and
 `.github/aw/actions-lock.json` to match, recompiles every `.md` workflow, and opens a PR

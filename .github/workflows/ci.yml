@@ -29,7 +29,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh aw compile drafter review fix queue-triage ci-triage --approve
+          gh aw compile drafter review fix queue-triage ci-triage retro --approve
 
       - name: Check for lock drift
         run: |
